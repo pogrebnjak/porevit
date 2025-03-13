@@ -1,0 +1,197 @@
+let productPoddonCountProperty = 'PROPERTY_M2_V_ODNOM_PODDONE_VALUE';
+
+document.addEventListener('DOMContentLoaded', () => {
+    addCountChangeListeners();
+
+    let productsWithPoddonCount = document.querySelectorAll(`[data-column-property-code="${productPoddonCountProperty}"]`);
+
+    if(productsWithPoddonCount)
+        addBasketText();
+
+    productsWithPoddonCount.forEach((element) => {
+        checkProductCount(element);
+    });
+ 
+
+    BX.addCustomEvent('OnBasketChange', BX.delegate(() => {
+        addCountChangeListeners();
+    }));
+});
+
+function addCountChangeListeners() {
+    let productElements = document.querySelectorAll('.basket-items-list-table .basket-items-list-item-wrapper');
+    productElements.forEach((element) => {
+        poddonCountElement = element.querySelector(`[data-column-property-code="${productPoddonCountProperty}"]`);
+        
+        if(poddonCountElement) {
+            let productCountElement = element.querySelector('.basket-item-amount-filed');
+            
+            productCountElement.onchange = onProductCountChange;
+            productCountElement.onchange(productCountElement);
+
+            // var event = new Event('change');
+            // productCountElement.dispatchEvent(event);
+
+            var block = BX?.Sale?.BasketComponent?.getEntity(element, "basket-item-quantity-block");
+            if (block) {
+                var startEventName = this.isTouch ? "touchstart" : "mousedown";
+                var endEventName = this.isTouch ? "touchend" : "mouseup";
+
+                entity = BX?.Sale?.BasketComponent?.getEntity(block, "basket-item-quantity-minus");
+                BX.bind(entity, "click", BX.proxy(productQuantityMinus, this));
+
+                entity = BX?.Sale?.BasketComponent?.getEntity(block, "basket-item-quantity-plus");
+                BX.bind(entity, "click", BX.proxy(productQuantityPlus, this));
+
+                // entity = BX?.Sale?.BasketComponent?.getEntity(block, "basket-item-quantity-field");
+                // BX.bind(entity, "change", BX.proxy(this.quantityChange, this));
+            }
+        }
+        
+    });
+}
+
+function addBasketText() {
+    let basketMessage = getCookie('basketmessage');
+    if(basketMessage) {
+        addBasketTextElement(basketMessage);
+    }
+    else {
+        BX.ajax.runAction('bit:saleadditions.sale.getBasketMessage', {
+        }).then((response) => {
+            if(response.data) {
+                setCookie('basketmessage', response.data, {secure: true, 'max-age': 3600});
+                addBasketTextElement(response.data);
+            }
+        }, (response) => {
+            console.log(response);
+        });
+    }
+}
+
+function addBasketTextElement(message) {
+    let messageElement = document.createElement('div');
+    messageElement.innerHTML = message;
+    messageElement.classList.add('basket-message', 'alert', 'alert-success');
+
+    document.querySelector('#basket-root > .row > *')?.appendChild(messageElement);
+}
+
+function checkProductCount(countElement, quantity = null) {
+    let itemData = BX?.Sale?.BasketComponent?.getItemDataByTarget(countElement);
+    let oldQuantity = quantity ?? +itemData.QUANTITY;
+    let newQuantity = oldQuantity;
+    let availableQuantity = +itemData.AVAILABLE_QUANTITY;
+
+    let divider = +getProductDivider(itemData);
+    // console.log(oldQuantity);
+    if(oldQuantity) {
+        if(availableQuantity < divider && oldQuantity > availableQuantity) {
+            newQuantity = availableQuantity;
+        }
+        else if(oldQuantity > availableQuantity && availableQuantity > divider) {
+            newQuantity = getLeftClosestNumberByDivider(availableQuantity, divider);
+        }
+        else if(oldQuantity < divider && availableQuantity > divider) {
+            newQuantity = divider;
+        }
+        else if(oldQuantity < divider && availableQuantity < divider) {
+            
+        }
+        else if(oldQuantity % divider !== 0) {
+            newQuantity = getClosestNumberByDivider(oldQuantity, divider);
+        }
+
+        let correсtquantity = BX?.Sale?.BasketComponent?.getCorrectQuantity(itemData, newQuantity);
+        // console.log(correсtquantity);
+        
+        newQuantity = correсtquantity;
+
+        if(newQuantity)
+            BX?.Sale?.BasketComponent?.setQuantity(itemData, newQuantity);
+    }
+}
+
+function getClosestNumberByDivider(number, divider) {
+    return divider * Math.round(number / divider);
+}
+
+function getLeftClosestNumberByDivider(number, divider) {
+    return divider * Math.trunc(number / divider);
+}
+
+function getRightClosestNumberByDivider(number, divider) {
+    return divider * Math.ceil(number / divider);
+}
+
+function getProductDivider(itemData) {
+    let count = null;
+    if(itemData) {
+        let columns = itemData['COLUMN_LIST'] ?? null;
+        if(columns) {
+            columns.forEach((column) => {
+                if(column?.CODE === productPoddonCountProperty) {
+                    count = column.VALUE;
+                }
+            });
+        }
+    }
+
+    return parseFloat(`${count}`.replace(',', '.'));
+}
+
+function onProductCountChange(e) {
+    checkProductCount(e.target);
+}
+
+function productQuantityPlus(e) {
+    let itemData = BX?.Sale?.BasketComponent?.getItemDataByTarget(e.target);
+    let oldQuantity = +itemData.QUANTITY;
+    let divider = +getProductDivider(itemData);
+    
+
+    checkProductCount(e.target, +oldQuantity + +divider);
+}
+
+function productQuantityMinus(e) {
+    let itemData = BX?.Sale?.BasketComponent?.getItemDataByTarget(e.target);
+    let oldQuantity = +itemData.QUANTITY;
+    let divider = +getProductDivider(itemData);
+    
+
+    checkProductCount(e.target, oldQuantity - divider);
+}
+
+
+function getCookie(name) {
+    let matches = document.cookie.match(new RegExp(
+      "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+    ));
+    return matches ? decodeURIComponent(matches[1]) : undefined;
+}
+
+function setCookie(name, value, options = {}) {
+
+    options = {
+      path: '/',
+      // при необходимости добавьте другие значения по умолчанию
+      ...options
+    };
+  
+    if (options.expires instanceof Date) {
+      options.expires = options.expires.toUTCString();
+    }
+  
+    let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(value);
+  
+    for (let optionKey in options) {
+      updatedCookie += "; " + optionKey;
+      let optionValue = options[optionKey];
+      if (optionValue !== true) {
+        updatedCookie += "=" + optionValue;
+      }
+    }
+  
+    document.cookie = updatedCookie;
+}
+

@@ -1,0 +1,118 @@
+.ik_select_list_inner.scroller.scrollblock{
+    height: auto!important;
+}
+
+.maxwidth-theme.seo-text__main{
+    padding-bottom: 50px;
+}
+.maxwidth-theme.seo-text__catalog{
+    padding: 50px 0 0 0;
+}
+.title-form-h4{
+    font-weight: 500;
+    font-size: 36px;
+}
+
+.apply-filter:hover {
+    cursor: pointer;
+}
+
+#content p img {
+    object-fit: contain;
+    height: min-content;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.stickers .sticker_kollektsiya_2024{background: #e5e619;}
+.stickers .sticker_unikalnyy_tsvet{background: #6d14b8;}
+.stickers .sticker_novinka_sezona{background: #1b1c24;}
+
+.shop-detail1 .social-block {display:none;}
+.shop-detail1 .feedback .button_wrap {display:none;}
+
+ @media screen and (min-width: 768px){
+                                        .product-detail-gallery__slider.horizontal {
+                                        --slider-max-width: 900px;
+                                        --slider-max-height:  575px;
+                                        }
+.product-detail-gallery__slider.square_big{
+                                        --slider-max-width:  900px;
+                                        --slider-max-height:  575px;
+}
+.product-detail-gallery__slider{
+                                        --slider-max-width:  900px;
+                                       --slider-max-height:  575px;
+}
+                                    }
+
+@media (max-width: 600px) {
+
+div.compact-catalog .item .stickers {
+display:block !important;
+padding: 0;
+}
+}
+/*@media (min-width: 600px) {*/
+/*.drag-block.container.CATALOG_SECTIONS.js-load-block{*/
+/*display:none;*/
+/*}*/
+/*}*/
+
+header .social-icons ul li.vk a {
+    background-position: -1px -377px;
+background-color:#ccc;
+}
+
+header .social-icons ul li.telegram a {
+    background-position: -329px -518px;
+background-color:#ccc;
+}
+
+header .social-icons ul li.ytb a {
+    background-position: -95px -518px;
+   background-color:#ccc;
+}
+
+header .social-icons ul li.zen a {
+background-position: -471px -518px;
+    background-color:#ccc;
+}
+
+@media (prefers-color-scheme: dark) {
+    body .catalog_section_list .item_block.lg .section_item li.name .dark_link {
+        color: #333 !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .first_bottom_menu {
+        padding-left: 48px;
+    }
+}
+
+@media (max-width: 550px) {
+    .contacts-stores.shops-list1 .item .image {
+        max-width: 260px;
+        margin: 0 auto 16px;
+        display: flex;
+        max-height: 120px;
+        justify-content: center;
+    }
+
+    .contacts-stores.shops-list1 .item .schedule {
+        display: none;
+    }
+
+    .contacts-stores.shops-list1 .item .custom_prop  {
+        display: none;
+    }
+
+    .contacts-stores.shops-list1 .item .right-block-contacts  {
+        display: none;
+    }
+}
+
+#footer .phone a:hover {
+    opacity: 0.5;
+}

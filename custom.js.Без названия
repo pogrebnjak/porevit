@@ -1,0 +1,161 @@
+/*
+You can use this file with your scripts.
+It will not be overwritten when you upgrade solution.
+*/
+let url = window.location.pathname; 
+
+if(url = '/catalog/trotuarnaya_plita/filter/in_stock-is-y/apply/'){
+	console.log($('.top-content-block'));
+}
+
+BX.addCustomEvent('onAjaxSuccessFilter', () => {
+    if(window.matchMedia('(max-width: 991px)').matches) {
+        let content = document.querySelector('.section-content-wrapper');
+        content.scrollIntoView();
+    }
+});
+
+const customJS = function () {
+    BX.ready(() => {
+
+        addNewTabToProductDetail('ukladka', 'Укладка');
+
+
+        BX.addCustomEvent("onAjaxSuccessFilter", BX.delegate(removeLoadMoreBtn));
+        BX.addCustomEvent("onCompleteAction", BX.delegate(removeLoadMoreBtn));
+        removeLoadMoreBtn();
+
+        function removeLoadMoreBtn() {
+            let loadMoreBtn = $('.bottom_nav .ajax_load_btn');
+            if (loadMoreBtn.length > 0)
+                loadMoreBtn.remove();
+        }
+
+        $(document).off("mouseenter", ".menu .mega-menu table td, .menu-row .mega-menu table td");
+        $(document).on("mouseenter", ".menu .mega-menu table td, .menu-row .mega-menu table td", function () {
+            var _this = $(this);
+            menu = _this.find("> .wrap > .dropdown-menu");
+
+            $('.menu-item.dropdown').each((index, item) => {
+                $(item).not(_this).find("> .wrap > .dropdown-menu").css('opacity', 0.0001);
+            });
+
+            if (!_this.hasClass("wide_menu")) {
+                menu.show();
+                CheckTopVisibleMenu();
+            }
+
+            var bDarkness = $(".wrapper1.dark-hover-overlay").length > 0;
+
+            menu.velocity("stop");
+
+            if (menu.css("opacity") != 0) {
+                menu.css("opacity", "1");
+                if (bDarkness) {
+                    $(".shadow-block").velocity("stop");
+                    $(".shadow-block").css("opacity", "1");
+                }
+            } else {
+                menu.velocity("fadeIn", {
+                    begin: function (elements) {
+                        InitMenuNavigationAim();
+                        CheckTopVisibleMenu();
+                    },
+                    duration: 150,
+                    delay: 150,
+                    complete: function () {
+                        if (bDarkness) {
+                            $("body").addClass("menu-hovered");
+                            if (!$(".shadow-block").length) $('<div class="shadow-block"></div>').appendTo($("body"));
+                            $(".shadow-block").velocity("stop").velocity("fadeIn", 200);
+                        }
+
+                    },
+                });
+            }
+
+            _this.one("mouseleave", function () {
+                $(".shadow-block").css("opacity", "1");
+                let isAnotherElementHovered = false;
+                $('.menu-item.dropdown').each((index, item) => {
+                    if ($(item).is(":hover"))
+                        isAnotherElementHovered = true;
+                });
+                menu.css('display', 'none');
+
+                if (isAnotherElementHovered) {
+                    if (!$(".shadow-block").length) $('<div class="shadow-block"></div>').appendTo($("body"));
+                    $(".shadow-block").velocity("stop");
+                    $(".shadow-block").css("opacity", "1");
+                } else {
+                    menu.velocity("stop").velocity("fadeOut", {
+                        duration: 50,
+                        delay: 300,
+                        complete: function () {
+                            if (bDarkness) {
+
+                                $(".shadow-block")
+                                    .velocity("stop")
+                                    .velocity("fadeOut", {
+                                        duration: 200,
+                                        delay: 100,
+                                        complete: function () {
+                                            $("body").removeClass("menu-hovered");
+
+                                        },
+                                    });
+                            }
+                        },
+                    });
+                }
+                window.menuItemHovered = false;
+            });
+        });
+    });
+
+    function addNewTabToProductDetail(tabId, tabName) {
+        let tabsBlock = $('.ordered-block.tabs-block .nav-tabs');
+        let tabsContent = $('.tab-content');
+        if (tabsBlock.length > 0) {
+            $.ajax(`/include/tab_catalog_detail_${tabId}.php`, {}).done((content) => {
+                if (content.length > 0) {
+
+                    let newTab = $(`<li class="bordered rounded3"><a href="#${tabId}" data-toggle="tab">${tabName}</a></li>`);
+                    tabsBlock.append(newTab);
+
+                    let newTabContent = $(`<div class="tab-pane ${tabId}" id="${tabId}">${content}</div>`);
+                    tabsContent.append(newTabContent);
+                }
+            });
+        }
+    }
+
+// // Вызов функции для изменения порядка элементов на странице https://porevitplitka.ru/catalog/trotuarnaya_plita/
+    swapDivOrder();
+
+    function swapDivOrder() {
+        //родительский элемент шапки контактов и элемента с вакансиями
+        const parentElement = document.getElementById('bx_incl_area_18_1');
+
+        //элемент с Шапкой контактов
+        const firstElement = parentElement.querySelector('.vacancy_desc');
+
+        //Элемент с вакансиями
+        const secondElement = document.getElementById('bx_incl_area_18_1_6');
+        //Проверка страницы, на которой нужен скрипт
+        const urlPattern = /https?:\/\/porevitplitka\.ru\/company\/vacancy\/.*/;
+        if (urlPattern.test(window.location.href)) {
+            // Смена порядка следования шапки контактов и вакансий
+            parentElement.insertBefore(secondElement, firstElement);
+
+            //Вынос текста с описанием страницы из шапки контактов
+            //поиск элемента для ставки
+            const containerElement = document.querySelector(".container");
+            //поиск элемента с текстом в шапке контактов
+            const targetElement = document.querySelector('.detailtext');
+            //перемещение текста из шапки контактов, для того, чтобы текст стал озаглавливающим
+            containerElement.insertBefore(targetElement, containerElement.firstChild);
+        }
+    }
+}
+customJS();
